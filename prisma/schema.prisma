@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String   @id @default(cuid())
+  email                   String   @unique
+  password                String?
+  createdAt               DateTime @default(now())
+  forwardAddressLocalPart String   @unique
+
+  inboundEmails    InboundEmail[]
+  subscriptions    Subscription[]
+  notificationLogs NotificationLog[]
+}
+
+model InboundEmail {
+  id          String   @id @default(cuid())
+  userId      String
+  receivedAt  DateTime @default(now())
+  from        String
+  subject     String
+  rawText     String?
+  parsedJson  String?
+  parseStatus String   @default("pending")
+  hash        String   @unique
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id               String    @id @default(cuid())
+  userId           String
+  merchantName     String
+  productName      String?
+  status           String    @default("active")
+  monthlyPrice     Int?
+  currency         String    @default("NOK")
+  billingCycle     String    @default("unknown")
+  startDate        DateTime?
+  trialEndDate     DateTime?
+  nextChargeDate   DateTime?
+  cancellationLink String?
+  sourceEmailId    String?
+  confidence       Float     @default(1.0)
+  isUnused         Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceEmail      InboundEmail? @relation(fields: [sourceEmailId], references: [id])
+  notificationLogs NotificationLog[]
+}
+
+model NotificationLog {
+  id             String   @id @default(cuid())
+  userId         String
+  subscriptionId String
+  type           String
+  sentAt         DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, type, sentAt])
+}

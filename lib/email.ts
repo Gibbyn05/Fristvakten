@@ -8,7 +8,7 @@ interface MailOptions {
 }
 
 function createTransport() {
-  // Use SMTP if configured, else fall back to Ethereal/console in dev
+  // Use SMTP if configured
   if (process.env.SMTP_HOST) {
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -21,8 +21,8 @@ function createTransport() {
     });
   }
 
-  // Dev mode: print to console
-  return nodemailer.createTransport({ jsonTransport: true });
+  // Dev/test: no-op transport (emails logged to console below)
+  return nodemailer.createTransport({ streamTransport: true, newline: "unix" });
 }
 
 export async function sendEmail(opts: MailOptions): Promise<void> {

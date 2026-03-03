@@ -16,7 +16,7 @@ const config: Config = {
       },
     ],
   },
-  testPathPattern: ["__tests__/.*\\.test\\.ts$"],
+  testMatch: ["**/__tests__/**/*.test.ts"],
 };
 
 export default config;

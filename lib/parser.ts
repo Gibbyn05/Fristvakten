@@ -247,16 +247,18 @@ export function parseEmail(
   let trialEndDate: Date | null = null;
   let nextChargeDate: Date | null = null;
 
+  // Prefer future dates; fall back to all extracted dates so old emails still parse.
   const now = new Date();
   const futureDates = dates.filter((d) => d > now);
+  const relevantDates = futureDates.length > 0 ? futureDates : dates;
 
-  if (futureDates.length > 0) {
+  if (relevantDates.length > 0) {
     confidence += 0.15;
     if (isTrial) {
-      trialEndDate = futureDates[0];
-      nextChargeDate = futureDates[1] ?? futureDates[0];
+      trialEndDate = relevantDates[0];
+      nextChargeDate = relevantDates[1] ?? relevantDates[0];
     } else {
-      nextChargeDate = futureDates[0];
+      nextChargeDate = relevantDates[0];
     }
   }
 
